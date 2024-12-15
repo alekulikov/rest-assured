@@ -1,77 +1,72 @@
 package tests;
 
-import io.restassured.RestAssured;
-import org.junit.jupiter.api.BeforeAll;
+import io.qameta.allure.*;
+import models.UpdateUserRequest;
+import models.UpdateUserResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
+import specs.UpdateUserSpecs;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@Feature("Обновление данных пользователя")
+@Owner("alekulikov")
+@Link(value = "Testing", url = "https://github.com/alekulikov/rest-assured")
 class PutUsersTest {
 
-    public static final DateTimeFormatter UPDATE_AT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    UpdateUserSpecs specs = new UpdateUserSpecs();
 
-    @BeforeAll
-    static void setUp() {
-        RestAssured.baseURI = "https://reqres.in";
-        RestAssured.basePath = "/api/users/{id}";
-    }
-
+    @Severity(SeverityLevel.BLOCKER)
+    @Tags({
+            @Tag("SMOKE"),
+            @Tag("API")
+    })
     @Test
+    @DisplayName("Успешное обновление")
     void successUpdateUserTest() {
         var userId = 2;
-        var requestBody = """
-                {
-                    "name": "morpheus",
-                    "job": "zion resident"
-                }
-                """;
+        var requestBody = new UpdateUserRequest("morpheus", "zion resident");
         var currentDateTime = LocalDateTime.now(ZoneOffset.UTC);
 
-        var response = given()
+        var response = step("Сделать запрос", () -> given()
+                .spec(specs.getRequestSpecification())
                 .pathParam("id", userId)
-                .contentType(JSON)
-                .accept(JSON)
                 .body(requestBody)
-                .log().uri()
-                .log().body()
                 .when()
                 .put()
                 .then()
-                .log().status()
-                .log().body()
-                .assertThat().statusCode(200)
-                .and().extract().jsonPath().getString("updatedAt");
+                .spec(specs.getResponseSpecification())
+                .and().extract().as(UpdateUserResponse.class));
 
-        assertThat(LocalDateTime.parse(response, UPDATE_AT_FORMAT),
-                greaterThanOrEqualTo(currentDateTime));
+        step("Проверить ответ", () -> assertThat(response.getUpdatedAt())
+                .isAfter(currentDateTime));
     }
 
+    @Severity(SeverityLevel.CRITICAL)
+    @Tag("API")
     @Test
+    @DisplayName("Успешное обновление с пустым телом запроса")
     void updateUserWithoutBodyTest() {
         var userId = 2;
         var currentDateTime = LocalDateTime.now(ZoneOffset.UTC);
 
-        var response = given()
+        var response = step("Сделать запрос", () -> given()
+                .spec(specs.getRequestSpecification())
                 .pathParam("id", userId)
-                .accept(JSON)
-                .log().uri()
-                .log().body()
                 .when()
                 .put()
                 .then()
-                .log().status()
-                .log().body()
-                .assertThat().statusCode(200)
-                .and().extract().jsonPath().getString("updatedAt");
+                .spec(specs.getResponseSpecification())
+                .and().extract().as(UpdateUserResponse.class));
 
-        assertThat(LocalDateTime.parse(response, UPDATE_AT_FORMAT),
-                greaterThanOrEqualTo(currentDateTime));
+        step("Проверить ответ", () -> assertThat(response.getUpdatedAt())
+                .isAfter(currentDateTime));
     }
 }
