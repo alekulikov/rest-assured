@@ -7,22 +7,21 @@ import io.restassured.specification.ResponseSpecification;
 
 import static helpers.AllureHelper.withAllureListener;
 import static io.restassured.filter.log.LogDetail.ALL;
+import static io.restassured.http.ContentType.JSON;
 
-public class BaseSpecs {
+public class UsersSpecs {
 
-    public static final String BASE_URL = "https://reqres.in";
-
-    protected RequestSpecification getRequestSpecification() {
+    public static RequestSpecification getRequestSpecification() {
         return new RequestSpecBuilder()
                 .addFilter(withAllureListener())
                 .log(ALL)
-                .setBaseUri(BASE_URL)
                 .build();
     }
 
-    protected ResponseSpecification getResponseSpecification() {
+    public static ResponseSpecification getResponseSpecification() {
         return new ResponseSpecBuilder()
                 .log(ALL)
+                .expectContentType(JSON)
                 .build();
     }
 }

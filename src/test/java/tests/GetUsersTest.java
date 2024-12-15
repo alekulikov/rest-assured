@@ -6,19 +6,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
-import specs.GetUsersSpecs;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
+import static specs.UsersSpecs.getRequestSpecification;
+import static specs.UsersSpecs.getResponseSpecification;
 
 @Feature("Получение списка пользователей")
 @Owner("alekulikov")
 @Link(value = "Testing", url = "https://github.com/alekulikov/rest-assured")
-class GetUsersTest {
-
-    GetUsersSpecs specs = new GetUsersSpecs();
+class GetUsersTest extends TestBase {
 
     @Severity(SeverityLevel.BLOCKER)
     @Tags({
@@ -32,12 +31,13 @@ class GetUsersTest {
         var usersPerPage = 6;
 
         var response = step("Сделать запрос", () -> given()
-                .spec(specs.getRequestSpecification())
+                .spec(getRequestSpecification())
                 .param("page", pageNumber)
                 .when()
-                .get()
+                .get("/users")
                 .then()
-                .spec(specs.getResponseSpecification())
+                .spec(getResponseSpecification())
+                .statusCode(200)
                 .and().extract().as(GetUsersResponse.class));
 
         step("Проверить ответ", () -> assertThat(response)
@@ -57,11 +57,12 @@ class GetUsersTest {
         var pageNumber = 1;
 
         var response = step("Сделать запрос", () -> given()
-                .spec(specs.getRequestSpecification())
+                .spec(getRequestSpecification())
                 .when()
-                .get()
+                .get("/users")
                 .then()
-                .spec(specs.getResponseSpecification())
+                .spec(getResponseSpecification())
+                .statusCode(200)
                 .and().extract().as(GetUsersResponse.class));
 
         step("Проверить ответ", () -> assertThat(response)
@@ -79,12 +80,13 @@ class GetUsersTest {
         var pageNumber = 10001;
 
         var response = step("Сделать запрос", () -> given()
-                .spec(specs.getRequestSpecification())
+                .spec(getRequestSpecification())
                 .param("page", pageNumber)
                 .when()
-                .get()
+                .get("/users")
                 .then()
-                .spec(specs.getResponseSpecification())
+                .spec(getResponseSpecification())
+                .statusCode(200)
                 .and().extract().as(GetUsersResponse.class));
 
         step("Проверить ответ", () -> assertThat(response)
